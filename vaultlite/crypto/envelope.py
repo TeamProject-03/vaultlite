@@ -89,7 +89,7 @@ def decrypt_secret(kek: bytes, path: str, version: int, blob: bytes) -> bytes:
     except InvalidTag as exc:
         raise DecryptionError("decryption failed") from exc
 
-    def rewrap_dek(old_kek: bytes, new_kek: bytes, path: str, version: int,
+def rewrap_dek(old_kek: bytes, new_kek: bytes, path: str, version: int,
                blob: bytes) -> bytes:
     """Move a secret's DEK from `old_kek` to `new_kek` (used for KEK rotation).
 
