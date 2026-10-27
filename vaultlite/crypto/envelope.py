@@ -88,3 +88,27 @@ def decrypt_secret(kek: bytes, path: str, version: int, blob: bytes) -> bytes:
         return AESGCM(dek).decrypt(nonce, ciphertext, aad)
     except InvalidTag as exc:
         raise DecryptionError("decryption failed") from exc
+
+    def rewrap_dek(old_kek: bytes, new_kek: bytes, path: str, version: int,
+               blob: bytes) -> bytes:
+    """Move a secret's DEK from `old_kek` to `new_kek` (used for KEK rotation).
+
+    Only the wrapped DEK changes. The encrypted value is copied as it is, so
+    the plaintext is never exposed. The value is not re-checked here: any
+    tampering with it is still caught later by decrypt_secret().
+    """
+    _check_inputs(old_kek, path, version)
+    _check_inputs(new_kek, path, version)
+    if len(blob) < _HEADER_SIZE + TAG_SIZE or blob[:1] != FORMAT_V1:
+        raise DecryptionError("invalid blob")
+    aad = _aad(path, version)
+    old_wrap_nonce = blob[1:1 + NONCE_SIZE]
+    wrapped_dek = blob[1 + NONCE_SIZE:1 + NONCE_SIZE + _WRAPPED_DEK_SIZE]
+    rest = blob[1 + NONCE_SIZE + _WRAPPED_DEK_SIZE:]   # value nonce + ciphertext
+    try:
+        dek = AESGCM(old_kek).decrypt(old_wrap_nonce, wrapped_dek, aad)
+    except InvalidTag as exc:
+        raise DecryptionError("rewrap failed") from exc
+    new_wrap_nonce = secrets.token_bytes(NONCE_SIZE)
+    new_wrapped_dek = AESGCM(new_kek).encrypt(new_wrap_nonce, dek, aad)
+    return FORMAT_V1 + new_wrap_nonce + new_wrapped_dek + rest

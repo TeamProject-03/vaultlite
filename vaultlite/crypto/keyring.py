@@ -100,3 +100,14 @@ def verify_key_check(master_key: bytes, key_check_blob: bytes) -> bool:
     except (InvalidTag, ValueError):
         return False
     return hmac.compare_digest(plain, _CHECK_CONSTANT)
+
+def seal_keyring(master_key: bytes, kek: bytes) -> bytes:
+    """Encrypt an existing `kek` under `master_key`.
+
+    Used by master-key rotation: the KEK stays the same, only the key that
+    protects it changes.
+    """
+    _check_master(master_key)
+    if not isinstance(kek, bytes) or len(kek) != KEY_SIZE:
+        raise ValueError("kek must be 32 bytes")
+    return _seal(master_key, _KEYRING_INFO, kek)
