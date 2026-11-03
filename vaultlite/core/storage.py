@@ -263,11 +263,11 @@ class Storage:
         }
 
     def revoke_token(self, token_hash: str) -> bool:
-        """Mark a token as revoked. Returns True if token was found and updated."""
+        """Mark a token as revoked. Returns True if token was active and now revoked."""
         _check_path(token_hash)
         with self._conn:
             cursor = self._conn.execute(
-                "UPDATE tokens SET revoked = 1 WHERE token_hash = ?",
+                "UPDATE tokens SET revoked = 1 WHERE token_hash = ? AND revoked = 0",
                 (token_hash,),
             )
             return cursor.rowcount > 0
