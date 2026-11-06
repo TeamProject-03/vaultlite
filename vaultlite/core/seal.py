@@ -24,8 +24,10 @@ Security invariants:
 from enum import Enum
 from typing import Any, Optional
 
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
 from vaultlite.core.storage import Storage
-from vaultlite.crypto import envelope, keyring, rotation, shamir
+from vaultlite.crypto import envelope, keyring, rotation, shamir, signing
 from vaultlite.crypto.errors import (
     DecryptionError,
     InvalidSharesError,
@@ -52,6 +54,7 @@ class SealManager:
         self._storage = storage
         self._state: VaultState = VaultState.UNINITIALIZED
         self._kek: Optional[bytes] = None
+        self._signing_priv: Optional[ed25519.Ed25519PrivateKey] = None
         self._shares: dict[int, Share] = {}  # index -> Share (deduplicates shares)
         self._threshold = DEFAULT_THRESHOLD
         self._shares_count = DEFAULT_SHARES_COUNT
@@ -138,15 +141,22 @@ class SealManager:
 
         try:
             # 2. Create keyring and key-check blobs
-            keyring_blob, _ = keyring.make_keyring(master)
+            keyring_blob, kek = keyring.make_keyring(master)
             check_blob = keyring.make_key_check(master)
 
-            # 3. Split master key into Shamir shares
+            # 3. Create digital signing keypair for audit non-repudiation
+            signing_priv, signing_pub = signing.generate_signing_key()
+            signing_blob = signing.wrap_signing_key(kek, signing_priv)
+            pub_hex = signing.public_key_to_hex(signing_pub)
+
+            # 4. Split master key into Shamir shares
             shares = shamir.split(master, n=n, k=k)
 
-            # 4. Save metadata to storage
+            # 5. Save metadata to storage
             self._storage.save_meta("keyring_blob", keyring_blob)
             self._storage.save_meta("check_blob", check_blob)
+            self._storage.save_meta("signing_blob", signing_blob)
+            self._storage.save_meta("signing_pub", pub_hex.encode("utf-8"))
             self._storage.save_meta("threshold", k.to_bytes(2, "big"))
             self._storage.save_meta("shares_count", n.to_bytes(2, "big"))
 
@@ -219,6 +229,11 @@ class SealManager:
         # Open keyring into memory
         self._kek = keyring.open_keyring(candidate_master, keyring_blob)
 
+        # Unwrap private signing key into memory for audit non-repudiation
+        signing_blob = self._storage.get_meta("signing_blob")
+        if signing_blob:
+            self._signing_priv = signing.unwrap_signing_key(self._kek, signing_blob)
+
         # Wipe ephemeral master key and collected shares
         del candidate_master
         self._shares.clear()
@@ -236,6 +251,7 @@ class SealManager:
     def seal(self) -> None:
         """Lock the vault immediately, purging KEK and collected shares from memory."""
         self._kek = None
+        self._signing_priv = None
         self._shares.clear()
         if self.is_initialized:
             self._state = VaultState.SEALED
@@ -250,6 +266,23 @@ class SealManager:
         if self._state != VaultState.UNSEALED or self._kek is None:
             raise RuntimeError("vault is sealed; unseal required before key operations")
         return self._kek
+
+    def get_signing_key(self) -> ed25519.Ed25519PrivateKey:
+        """Return the unwrapped Ed25519 private signing key.
+
+        Raises:
+            RuntimeError: If called while the vault is not unsealed.
+        """
+        if self._state != VaultState.UNSEALED or self._signing_priv is None:
+            raise RuntimeError("vault is sealed; unseal required before signing operations")
+        return self._signing_priv
+
+    def get_signing_public_key(self) -> Optional[ed25519.Ed25519PublicKey]:
+        """Return the Ed25519 public verification key (available even while sealed)."""
+        raw_hex = self._storage.get_meta("signing_pub")
+        if not raw_hex:
+            return None
+        return signing.public_key_from_hex(raw_hex.decode("utf-8"))
 
     # --------------------------------------------------------- rotation
     def rotate_master_key(self, custodian_shares: list[str]) -> list[str]:
@@ -321,6 +354,15 @@ class SealManager:
         for path, version, blob in self._storage.get_all_secret_records():
             new_blob = rotation.rewrap_secret(old_kek, new_kek, path, version, blob)
             self._storage.update_secret_blob(path, version, new_blob)
+
+        # Re-wrap signing key with new KEK
+        signing_blob = self._storage.get_meta("signing_blob")
+        if signing_blob:
+            priv = signing.unwrap_signing_key(old_kek, signing_blob)
+            new_signing_blob = signing.wrap_signing_key(new_kek, priv)
+            self._storage.save_meta("signing_blob", new_signing_blob)
+            if self._state == VaultState.UNSEALED:
+                self._signing_priv = priv
 
         # Save new keyring blob
         self._storage.save_meta("keyring_blob", new_keyring_blob)
