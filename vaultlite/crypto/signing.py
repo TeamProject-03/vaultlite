@@ -1,4 +1,4 @@
-"""Digital signatures and hash chaining for non-repudiation.  OWNER: Student A / B.
+"""Digital signatures and hash chaining for non-repudiation.  OWNER: Mohammed Siraj.
 
 This module provides Ed25519 digital signatures and append-only hash chaining
 for tamper-evident audit logging.

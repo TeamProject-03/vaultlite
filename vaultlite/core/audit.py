@@ -1,5 +1,5 @@
 """Tamper-evident audit log with hash chaining and Ed25519 digital signatures.
-OWNER: Student B (Mohammed Siraj).
+OWNER: Mohammed Siraj.
 
 This module provides non-repudiation and integrity verification for all vault
 operations (unseal, read, write, rotate, token events).

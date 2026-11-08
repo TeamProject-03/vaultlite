@@ -1,4 +1,4 @@
-"""Unit tests for API Token Authentication and Policies.  OWNER: Student B (Mohammed Siraj)."""
+"""Unit tests for API Token Authentication and Policies.  OWNER: Mohammed Siraj."""
 import pytest
 
 from vaultlite.api.auth import AuthManager, hash_token, TOKEN_PREFIX

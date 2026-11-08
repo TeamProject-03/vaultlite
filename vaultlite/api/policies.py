@@ -1,4 +1,4 @@
-"""Path-based Access Control List (ACL) policies.  OWNER: Student B (Mohammed Siraj).
+"""Path-based Access Control List (ACL) policies.  OWNER: Mohammed Siraj.
 
 This module implements VaultLite's authorization engine. Access control is
 enforced per-path and per-operation before any cryptographic or storage

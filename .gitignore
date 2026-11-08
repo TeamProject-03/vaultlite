@@ -1,5 +1,6 @@
 __pycache__/
 .venv/
+venv/
 *.pyc
 *.pem
 *.key
@@ -7,3 +8,8 @@ __pycache__/
 *.db
 *.sqlite
 shares.txt
+.idea/
+.vscode/
+.pytest_cache/
+*.egg-info/
+.coverage

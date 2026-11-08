@@ -1,4 +1,4 @@
-"""Vault lifecycle and Seal state machine.  OWNER: Student B (Mohammed Siraj).
+"""Vault lifecycle and Seal state machine.  OWNER: Mohammed Siraj.
 
 This module manages the vault's state transitions and in-memory key lifecycle.
 

@@ -1,4 +1,4 @@
-"""Unit tests for the Seal state machine.  OWNER: Student B (Mohammed Siraj)."""
+"""Unit tests for the Seal state machine.  OWNER: Mohammed Siraj."""
 import pytest
 from pathlib import Path
 

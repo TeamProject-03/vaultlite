@@ -1,4 +1,4 @@
-"""API Token Authentication and Authorization.  OWNER: Student B (Mohammed Siraj).
+"""API Token Authentication and Authorization.  OWNER: Mohammed Siraj.
 
 This module handles API token generation, cryptographic hashing, and
 validation against the storage layer and policy engine.

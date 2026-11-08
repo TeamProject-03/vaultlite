@@ -1,5 +1,5 @@
 """Unit tests for the tamper-evident audit log and Ed25519 signing.
-OWNER: Student B (Mohammed Siraj).
+OWNER: Mohammed Siraj.
 """
 import pytest
 

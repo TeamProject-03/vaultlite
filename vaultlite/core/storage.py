@@ -1,4 +1,4 @@
-"""SQLite encrypted storage layer for VaultLite.  OWNER: Student B (Mohammed Siraj).
+"""SQLite encrypted storage layer for VaultLite.  OWNER: Mohammed Siraj.
 
 This module handles all database persistence for the vault.
 

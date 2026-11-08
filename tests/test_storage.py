@@ -1,4 +1,4 @@
-"""Unit tests for the SQLite storage layer.  OWNER: Student B (Mohammed Siraj)."""
+"""Unit tests for the SQLite storage layer.  OWNER: Mohammed Siraj."""
 import pytest
 from pathlib import Path
 
