@@ -1,9 +1,3 @@
-"""Tests for the command line client.  OWNER: Amal Mammadzada (Student C).
-
-Each test runs real CLI commands with click's CliRunner against the real
-FastAPI app. FastAPI's TestClient stands in for the network, so no server,
-TLS certificate or open port is needed.
-"""
 import re
 
 import pytest
@@ -21,7 +15,6 @@ ROOT_TOKEN_RE = re.compile(r"Root token: (\S+)")
 
 @pytest.fixture
 def vault():
-    """A fresh vault server with an in-memory database."""
     storage = Storage(":memory:")
     with TestClient(create_app(storage=storage)) as http:
         yield http
@@ -29,22 +22,18 @@ def vault():
 
 
 def run(http, args, token=None, input=None):
-    """Run one CLI command against the test server."""
-    # VAULTLITE_TOKEN=None removes any token set in the developer's own shell.
     return CliRunner().invoke(
         cli, args, obj={"client": http}, env={"VAULTLITE_TOKEN": token}, input=input
     )
 
 
 def init_vault(http):
-    """Run 'init' and return (shares, root_token)."""
     result = run(http, ["init"])
     assert result.exit_code == 0, result.output
     return SHARE_RE.findall(result.output), ROOT_TOKEN_RE.search(result.output).group(1)
 
 
 def unseal_with(http, shares):
-    """Run 'unseal' once per share and return the last result."""
     result = None
     for share in shares:
         result = run(http, ["unseal"], input=share + "\n")
@@ -83,7 +72,6 @@ def test_put_and_get_with_versions(vault):
     assert result.exit_code == 0, result.output
     assert "version 1" in result.output
 
-    # Without VALUE the value is read from the (hidden) prompt.
     result = run(vault, ["put", "db/password"], token=root_token, input="second-value\n")
     assert "version 2" in result.output
 
