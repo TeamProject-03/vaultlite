@@ -230,9 +230,9 @@ The complete list with recommended remediations is included in [`docs/threat_mod
 
 | Member | Role | Main parts |
 |---|---|---|
-| Pranay Paul Reddy (Student A) | Crypto core | `vaultlite/crypto/`, `scripts/demo_crypto.py` |
-| Mohammed Siraj (Student B) | Server and security | `vaultlite/api/`, `vaultlite/core/`, `scripts/make_ca.py` |
-| Amal Mammadzada (Student C) | Client, testing and documents | `vaultlite/cli.py`, `tests/test_cli.py`, `tests/test_attacks.py`, `scripts/attack_demo.py`, `docs/` |
+| Pranay Paul Reddy | Crypto core | `vaultlite/crypto/`, `scripts/demo_crypto.py` |
+| Mohammed Siraj | Server and security | `vaultlite/api/`, `vaultlite/core/`, `scripts/make_ca.py` |
+| Amal Mammadzada | Client, testing and documents | `vaultlite/cli.py`, `tests/test_cli.py`, `tests/test_attacks.py`, `scripts/attack_demo.py`, `docs/` |
 
 ## Use of AI tools
 
