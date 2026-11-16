@@ -11,9 +11,11 @@ from vaultlite.crypto.envelope import generate_master_key
 from vaultlite.crypto.shamir import split
 from vaultlite.crypto.signing import GENESIS_HASH, chain_hash
 
+# Secret used in tests
 SECRET = "S3cr3t-DB-Passw0rd!"
 
 
+# Submit shares to server
 def unseal(http, shares):
     response = None
     for share in shares:
@@ -21,6 +23,7 @@ def unseal(http, shares):
     return response
 
 
+# Unsealed vault with secret
 @pytest.fixture
 def vault(tmp_path):
     db_path = tmp_path / "vault.db"
@@ -37,6 +40,7 @@ def vault(tmp_path):
     storage.close()
 
 
+# Attacker edits DB directly
 def attacker_sql(db_path, sql, params=()):
     connection = sqlite3.connect(db_path)
     try:
@@ -46,6 +50,7 @@ def attacker_sql(db_path, sql, params=()):
         connection.close()
 
 
+# Read raw stored blob
 def read_blob(db_path, path, version=1):
     connection = sqlite3.connect(db_path)
     try:
@@ -57,6 +62,7 @@ def read_blob(db_path, path, version=1):
     return bytes(row[0])
 
 
+# Rebuild hashes without key
 def recompute_chain(db_path):
     connection = sqlite3.connect(db_path)
     try:
@@ -72,10 +78,12 @@ def recompute_chain(db_path):
         connection.close()
 
 
+# Ask server to verify
 def audit_check(vault):
     return vault.http.get("/v1/audit/verify").json()
 
 
+# Shares from another vault
 def foreign_shares():
     return [share.to_str() for share in split(generate_master_key(), n=5, k=3)]
 
@@ -90,6 +98,7 @@ def test_database_holds_only_ciphertext(vault):
 
 def test_tampered_blob_is_rejected(vault):
     blob = bytearray(read_blob(vault.db, "db/password"))
+    # Flip one bit
     blob[len(blob) // 2] ^= 0x01
     attacker_sql(vault.db, "UPDATE secrets SET blob = ? WHERE path = 'db/password'", (bytes(blob),))
 
@@ -100,6 +109,7 @@ def test_tampered_blob_is_rejected(vault):
 
 
 def test_blob_replayed_under_another_path_is_rejected(vault):
+    # Copy to another path
     blob = read_blob(vault.db, "db/password")
     attacker_sql(
         vault.db,
@@ -114,6 +124,7 @@ def test_blob_replayed_under_another_path_is_rejected(vault):
 
 def test_old_version_replayed_as_newer_version_is_rejected(vault):
     vault.http.put("/v1/secret/db/password", json={"value": "new-password"}, headers=vault.root)
+    # Put v1 into v2
     old_blob = read_blob(vault.db, "db/password", version=1)
     attacker_sql(
         vault.db,
@@ -205,6 +216,7 @@ def test_deleted_audit_entry_is_detected(vault):
 def test_edited_entry_with_recomputed_hashes_fails_signature_check(vault):
     vault.http.get("/v1/secret/db/password", headers=vault.root)
     attacker_sql(vault.db, "UPDATE audit_log SET path = 'app/harmless' WHERE action = 'secret.write'")
+    # Fix hashes, not signatures
     recompute_chain(vault.db)
 
     result = audit_check(vault)
@@ -212,6 +224,7 @@ def test_edited_entry_with_recomputed_hashes_fails_signature_check(vault):
     assert "invalid digital signature" in result["error"]
 
 
+# Known limitation (G1)
 @pytest.mark.xfail(
     reason="Known limitation: nothing records where the audit chain ends, "
     "so deleting the newest entries is not detected."

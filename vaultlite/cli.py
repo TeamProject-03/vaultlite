@@ -7,10 +7,12 @@ from urllib.parse import quote
 import click
 import httpx
 
+# Default settings
 DEFAULT_ADDR = "https://localhost:8200"
 DEFAULT_CA_CERT = "certs/ca.crt"
 TIMEOUT_SECONDS = 10.0
 
+# Extra help per error
 HINTS = {
     401: "Check your token (set VAULTLITE_TOKEN or pass --token).",
     403: "This token's policy does not allow that action on that path.",
@@ -18,12 +20,15 @@ HINTS = {
 }
 
 
+# Trust only our CA
 def make_tls_context(ca_cert: str) -> ssl.SSLContext:
     context = ssl.create_default_context(cafile=ca_cert)
+    # Require TLS 1.3
     context.minimum_version = ssl.TLSVersion.TLSv1_3
     return context
 
 
+# Create HTTPS client once
 def get_client(ctx: click.Context) -> httpx.Client:
     state = ctx.obj
     if state.get("client") is None:
@@ -43,6 +48,7 @@ def get_client(ctx: click.Context) -> httpx.Client:
     return state["client"]
 
 
+# Send one API request
 def call(
     ctx: click.Context,
     method: str,
@@ -52,6 +58,7 @@ def call(
     auth: bool = False,
 ) -> dict[str, Any]:
     headers = {}
+    # Add token when needed
     if auth:
         token = ctx.obj.get("token")
         if not token:
@@ -63,6 +70,7 @@ def call(
     client = get_client(ctx)
     try:
         response = client.request(method, url, json=json_body, params=params, headers=headers)
+    # Network or TLS failure
     except httpx.ConnectError as exc:
         if "SSL" in str(exc) or "CERTIFICATE" in str(exc).upper():
             raise click.ClickException(
@@ -75,6 +83,7 @@ def call(
     except httpx.TimeoutException:
         raise click.ClickException(f"the server at {ctx.obj['addr']} did not answer in time.")
 
+    # Turn errors into messages
     if response.status_code >= 400:
         try:
             detail = response.json().get("detail", response.text)
@@ -88,7 +97,9 @@ def call(
     return response.json()
 
 
+# Read input without echo
 def read_secret(label: str) -> str:
+    # Hide input in terminal
     if sys.stdin.isatty():
         value = click.prompt(label, hide_input=True)
     else:
@@ -101,6 +112,7 @@ def read_secret(label: str) -> str:
     return value
 
 
+# Build safe secret URL
 def secret_url(path: str) -> str:
     clean = path.strip().strip("/")
     if not clean:
@@ -108,12 +120,14 @@ def secret_url(path: str) -> str:
     return "/v1/secret/" + quote(clean, safe="/")
 
 
+# Ask for current shares
 def read_quorum(ctx: click.Context, count: Optional[int]) -> list[str]:
     if count is None:
         count = call(ctx, "GET", "/v1/status")["threshold"]
     return [read_secret(f"Current unseal share {i} of {count}") for i in range(1, count + 1)]
 
 
+# Main command group
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"]},
     help="VaultLite: a small Vault-style secrets manager (command line client).",
@@ -130,6 +144,7 @@ def cli(ctx: click.Context, addr: str, ca_cert: str, token: Optional[str]) -> No
     ctx.obj.update(addr=addr.rstrip("/"), ca_cert=ca_cert, token=token)
 
 
+# vl status
 @cli.command(help="Show whether the vault is initialized, sealed or unsealed.")
 @click.pass_context
 def status(ctx: click.Context) -> None:
@@ -142,6 +157,7 @@ def status(ctx: click.Context) -> None:
             click.echo(f"Progress    : {data['shares_collected']} of {data['threshold']} shares submitted")
 
 
+# vl init
 @cli.command(help="Initialize a new vault: create the master key and split it into shares.")
 @click.option("--shares", "-n", default=5, show_default=True, help="Number of shares to create.")
 @click.option("--threshold", "-k", default=3, show_default=True, help="Shares needed to unseal.")
@@ -159,6 +175,7 @@ def init(ctx: click.Context, shares: int, threshold: int) -> None:
     )
 
 
+# vl unseal
 @cli.command(help="Submit ONE unseal share. Repeat until the vault is unsealed.")
 @click.pass_context
 def unseal(ctx: click.Context) -> None:
@@ -170,6 +187,7 @@ def unseal(ctx: click.Context) -> None:
         click.echo(f"Share accepted. Vault is still SEALED: {data['shares_needed']} more share(s) needed.")
 
 
+# vl seal
 @cli.command(help="Seal the vault now: the server forgets its keys (admin token).")
 @click.pass_context
 def seal(ctx: click.Context) -> None:
@@ -177,6 +195,7 @@ def seal(ctx: click.Context) -> None:
     click.echo(data.get("message", "vault is sealed"))
 
 
+# vl put
 @cli.command(help="Store a secret at PATH. Each put creates a new version. Leave out VALUE "
                   "to type it at a hidden prompt, which keeps it out of the shell history.")
 @click.argument("path")
@@ -190,6 +209,7 @@ def put(ctx: click.Context, path: str, value: Optional[str]) -> None:
     click.echo(f"Stored {data['path']} (version {data['version']}).")
 
 
+# vl get
 @cli.command(help="Read and decrypt the secret at PATH (latest version by default).")
 @click.argument("path")
 @click.option("--version", "version", type=int, default=None, help="Read an older version.")
@@ -202,6 +222,7 @@ def get(ctx: click.Context, path: str, version: Optional[int]) -> None:
     click.echo(f"Value   : {data['value']}")
 
 
+# vl list
 @cli.command("list", help="List the paths of all stored secrets.")
 @click.pass_context
 def list_secrets(ctx: click.Context) -> None:
@@ -212,6 +233,7 @@ def list_secrets(ctx: click.Context) -> None:
         click.echo(path)
 
 
+# vl token create
 @cli.group(help="Manage API tokens (needs an admin or root token).")
 def token() -> None:
     pass
@@ -229,6 +251,7 @@ def token_create(ctx: click.Context, policy: str, description: str) -> None:
     click.echo("Shown only once. The server stores only its SHA-256 hash.")
 
 
+# vl rotate master/kek
 @cli.group(help="Rotate keys (needs an admin token and a quorum of current shares).")
 def rotate() -> None:
     pass
@@ -257,6 +280,7 @@ def rotate_kek(ctx: click.Context, count: Optional[int]) -> None:
     click.echo(data.get("message", "KEK rotated."))
 
 
+# vl audit-verify
 @cli.command("audit-verify", help="Check the audit log's hash chain and Ed25519 signatures. "
                                   "Exits with code 1 if the log was edited.")
 @click.pass_context
@@ -268,6 +292,7 @@ def audit_verify(ctx: click.Context) -> None:
         raise click.ClickException(f"AUDIT LOG TAMPERED: {data['error']}")
 
 
+# vl audit-list
 @cli.command("audit-list", help="Show the audit log entries (needs an admin or root token).")
 @click.pass_context
 def audit_list(ctx: click.Context) -> None:
@@ -283,5 +308,6 @@ def audit_list(ctx: click.Context) -> None:
         )
 
 
+# Run the CLI
 if __name__ == "__main__":
     cli()

@@ -5,6 +5,7 @@ from pathlib import Path
 import click
 
 
+# Open the database
 def connect(db):
     if not Path(db).exists():
         raise click.ClickException(
@@ -13,16 +14,19 @@ def connect(db):
     return sqlite3.connect(db)
 
 
+# Latest version of path
 def newest_blob(connection, path):
     return connection.execute(
         "SELECT version, blob FROM secrets WHERE path = ? ORDER BY version DESC LIMIT 1", (path,)
     ).fetchone()
 
 
+# Shorten bytes for display
 def short_hex(data):
     return f"{bytes(data)[:24].hex()}... ({len(data)} bytes)"
 
 
+# Attacker command group
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"]},
     help="Attacker tools for the live demo. Each command changes vaultlite.db directly, "
@@ -35,6 +39,7 @@ def cli(ctx, db):
     ctx.obj = db
 
 
+# Show raw database
 @cli.command("show-db", help="Show what an attacker sees in the database file.")
 @click.pass_obj
 def show_db(db):
@@ -55,6 +60,7 @@ def show_db(db):
         connection.close()
 
 
+# Flip one stored bit
 @cli.command("tamper-blob", help="Flip one bit in the newest stored version of the secret at PATH.")
 @click.argument("path")
 @click.pass_obj
@@ -76,6 +82,7 @@ def tamper_blob(db, path):
     click.echo(f"Flipped one bit in byte {position} of {path} version {version}.")
 
 
+# Copy blob elsewhere
 @cli.command("replay-blob", help="Copy the newest blob of SOURCE and store it as a new version of TARGET.")
 @click.argument("source")
 @click.argument("target")
@@ -100,6 +107,7 @@ def replay_blob(db, source, target):
     click.echo(f"Copied the blob of {source} version {row[0]} to {target} version {version}.")
 
 
+# Rewrite one log entry
 @cli.command("edit-audit", help="Change the path in the newest secret.read entry, hiding which secret was read.")
 @click.option("--new-path", default="app/harmless", show_default=True, help="Fake path to write.")
 @click.pass_obj
@@ -118,5 +126,6 @@ def edit_audit(db, new_path):
     click.echo(f"Audit entry {row[0]}: path changed from {row[1]} to {new_path}.")
 
 
+# Run the tool
 if __name__ == "__main__":
     cli()

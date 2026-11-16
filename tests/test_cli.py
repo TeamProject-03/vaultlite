@@ -8,11 +8,13 @@ from vaultlite.api.server import create_app
 from vaultlite.cli import cli
 from vaultlite.core.storage import Storage
 
+# Patterns for CLI output
 SHARE_RE = re.compile(r"Unseal share \d+: (\S+)")
 NEW_SHARE_RE = re.compile(r"New unseal share \d+: (\S+)")
 ROOT_TOKEN_RE = re.compile(r"Root token: (\S+)")
 
 
+# Fresh in-memory vault
 @pytest.fixture
 def vault():
     storage = Storage(":memory:")
@@ -21,18 +23,21 @@ def vault():
     storage.close()
 
 
+# Run one CLI command
 def run(http, args, token=None, input=None):
     return CliRunner().invoke(
         cli, args, obj={"client": http}, env={"VAULTLITE_TOKEN": token}, input=input
     )
 
 
+# Init and read output
 def init_vault(http):
     result = run(http, ["init"])
     assert result.exit_code == 0, result.output
     return SHARE_RE.findall(result.output), ROOT_TOKEN_RE.search(result.output).group(1)
 
 
+# Submit each share
 def unseal_with(http, shares):
     result = None
     for share in shares:
@@ -72,6 +77,7 @@ def test_put_and_get_with_versions(vault):
     assert result.exit_code == 0, result.output
     assert "version 1" in result.output
 
+    # Value from hidden prompt
     result = run(vault, ["put", "db/password"], token=root_token, input="second-value\n")
     assert "version 2" in result.output
 
@@ -127,6 +133,7 @@ def test_rotate_master_gives_new_shares_and_old_ones_stop_working(vault):
     new_shares = NEW_SHARE_RE.findall(result.output)
     assert len(new_shares) == 5
 
+    # Old shares must fail
     assert run(vault, ["seal"], token=root_token).exit_code == 0
     old = unseal_with(vault, shares[:3])
     assert old.exit_code == 1
