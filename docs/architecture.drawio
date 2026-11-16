@@ -1,0 +1,198 @@
+<mxfile host="app.diagrams.net" pages="2">
+  <diagram id="architecture" name="Architecture">
+    <mxGraphModel dx="1173" dy="644" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1220" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;whiteSpace=wrap;fontSize=12;fontSize=18;" value="&lt;b&gt;VaultLite architecture&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="600" x="20" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="op" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;" value="Operator /&lt;br&gt;custodians" vertex="1">
+          <mxGeometry height="70" width="40" x="50" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="cli" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;CLI client&lt;/b&gt;&lt;br&gt;vaultlite/cli.py&lt;br&gt;click + httpx&lt;br&gt;TLS 1.3 only, trusts private CA&lt;br&gt;hidden prompts for shares" vertex="1">
+          <mxGeometry height="120" width="210" x="140" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="net" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#ffffff;strokeColor=#999999;dashed=1;verticalAlign=top;fillColor=none;strokeColor=#999999;" value="&lt;b&gt;Network&lt;/b&gt;&lt;br&gt;HTTPS, TLS 1.3&lt;br&gt;server certificate signed by&lt;br&gt;the VaultLite private CA" vertex="1">
+          <mxGeometry height="520" width="150" x="380" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="srv" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;arcSize=3;" value="&lt;b&gt;FastAPI server&lt;/b&gt;  vaultlite/api/server.py" vertex="1">
+          <mxGeometry height="330" width="420" x="560" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fillColor=#ffffff;" value="&lt;b&gt;Auth&lt;/b&gt;&lt;br&gt;random 256-bit tokens&lt;br&gt;stored only as SHA-256 hashes&lt;br&gt;constant-time compare" vertex="1">
+          <mxGeometry height="80" width="185" x="580" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pol" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fillColor=#ffffff;" value="&lt;b&gt;Policies&lt;/b&gt;&lt;br&gt;path ACL, default deny&lt;br&gt;root, admin, dev-read, dev-write" vertex="1">
+          <mxGeometry height="80" width="185" x="780" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="seal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fillColor=#ffffff;" value="&lt;b&gt;Seal manager&lt;/b&gt;&lt;br&gt;sealed / unsealing / unsealed&lt;br&gt;KEK and signing key in RAM only" vertex="1">
+          <mxGeometry height="80" width="185" x="580" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fillColor=#ffffff;" value="&lt;b&gt;Audit logger&lt;/b&gt;&lt;br&gt;SHA-256 hash chain&lt;br&gt;+ Ed25519 signatures" vertex="1">
+          <mxGeometry height="80" width="185" x="780" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;fillColor=#ffffff;fontSize=11;" value="/v1/init  /v1/unseal  /v1/seal  /v1/status  /v1/secret/{path}&lt;br&gt;/v1/secrets  /v1/tokens  /v1/rotate/master|kek  /v1/audit/verify|entries" vertex="1">
+          <mxGeometry height="80" width="385" x="580" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="core" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;arcSize=3;" value="&lt;b&gt;Crypto core&lt;/b&gt;  vaultlite/crypto  (Python cryptography library)" vertex="1">
+          <mxGeometry height="150" width="440" x="560" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="sh" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fillColor=#ffffff;fontSize=10;" value="&lt;b&gt;Shamir&lt;/b&gt;&lt;br&gt;3 of 5&lt;br&gt;shares" vertex="1">
+          <mxGeometry height="90" width="80" x="572" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="env" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fillColor=#ffffff;fontSize=10;" value="&lt;b&gt;Envelope&lt;/b&gt;&lt;br&gt;AES-256-GCM&lt;br&gt;DEK per secret" vertex="1">
+          <mxGeometry height="90" width="80" x="657" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="kr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fillColor=#ffffff;fontSize=10;" value="&lt;b&gt;Keyring&lt;/b&gt;&lt;br&gt;HKDF-SHA256&lt;br&gt;key check" vertex="1">
+          <mxGeometry height="90" width="80" x="742" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="rot" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fillColor=#ffffff;fontSize=10;" value="&lt;b&gt;Rotation&lt;/b&gt;&lt;br&gt;master key&lt;br&gt;and KEK" vertex="1">
+          <mxGeometry height="90" width="80" x="827" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="sig" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;fillColor=#ffffff;fontSize=10;" value="&lt;b&gt;Signing&lt;/b&gt;&lt;br&gt;Ed25519&lt;br&gt;hash chain" vertex="1">
+          <mxGeometry height="90" width="80" x="912" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;SQLite&lt;/b&gt;  vaultlite.db&lt;br&gt;&lt;br&gt;secrets: encrypted blobs&lt;br&gt;vault_meta: wrapped keys&lt;br&gt;tokens: SHA-256 hashes&lt;br&gt;audit_log: signed chain" vertex="1">
+          <mxGeometry height="170" width="170" x="1040" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="att_net" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" value="&lt;b&gt;Attacker on the network&lt;/b&gt;&lt;br&gt;eavesdrop, fake server" vertex="1">
+          <mxGeometry height="60" width="150" x="380" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="att_db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" value="&lt;b&gt;Attacker with the DB file&lt;/b&gt;&lt;br&gt;read, edit, replay, delete" vertex="1">
+          <mxGeometry height="60" width="190" x="1030" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="att_ins" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" value="&lt;b&gt;Insider&lt;/b&gt;&lt;br&gt;read-only token, fake shares" vertex="1">
+          <mxGeometry height="50" width="210" x="140" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="e_op" edge="1" parent="1" source="op" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="cli" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cli" edge="1" parent="1" source="cli" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="srv" value="HTTPS request&lt;br&gt;X-Vault-Token header">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_core" edge="1" parent="1" source="srv" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="core" value="calls">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_db" edge="1" parent="1" source="srv" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="db" value="ciphertext only">
+          <mxGeometry relative="1" x="-0.3" as="geometry" />
+        </mxCell>
+        <mxCell id="e_an" edge="1" parent="1" source="att_net" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;strokeColor=#b85450;" target="net" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ad" edge="1" parent="1" source="att_db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;strokeColor=#b85450;" target="db" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ai" edge="1" parent="1" source="att_ins" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;strokeColor=#b85450;" target="cli" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_c" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Amal: CLI, attack tests" vertex="1">
+          <mxGeometry height="30" width="200" x="20" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_b" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Siraj: server, storage, TLS" vertex="1">
+          <mxGeometry height="30" width="210" x="230" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_a" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Pranay: crypto core" vertex="1">
+          <mxGeometry height="30" width="170" x="450" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_r" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" value="Threat (see threat model)" vertex="1">
+          <mxGeometry height="30" width="180" x="630" y="700" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="keys" name="Key hierarchy">
+    <mxGraphModel dx="704" dy="386" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1220" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ktitle" parent="1" style="text;html=1;whiteSpace=wrap;fontSize=12;fontSize=18;" value="&lt;b&gt;VaultLite key hierarchy&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="600" x="20" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="mk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Master key&lt;/b&gt; (256-bit, random)&lt;br&gt;never stored anywhere" vertex="1">
+          <mxGeometry height="60" width="260" x="400" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="split" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;Shamir split, 3 of 5&lt;/b&gt;&lt;br&gt;prime field 2^521 - 1" vertex="1">
+          <mxGeometry height="60" width="240" x="60" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="shares" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;5 shares&lt;/b&gt;, one per custodian&lt;br&gt;any 3 rebuild the master key&lt;br&gt;(Lagrange interpolation at x = 0)&lt;br&gt;2 shares reveal nothing" vertex="1">
+          <mxGeometry height="80" width="240" x="60" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="hkdf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;HKDF-SHA256&lt;/b&gt;&lt;br&gt;one subkey per purpose" vertex="1">
+          <mxGeometry height="60" width="240" x="560" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="krk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Keyring key&lt;/b&gt;&lt;br&gt;info: vaultlite/v1/keyring" vertex="1">
+          <mxGeometry height="60" width="230" x="430" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="ckk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Check key&lt;/b&gt;&lt;br&gt;info: vaultlite/v1/key-check" vertex="1">
+          <mxGeometry height="60" width="210" x="700" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="krb" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Keyring blob&lt;/b&gt; (stored in DB)&lt;br&gt;the KEK, encrypted with AES-256-GCM" vertex="1">
+          <mxGeometry height="60" width="230" x="430" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="ckb" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Key-check blob&lt;/b&gt; (stored in DB)&lt;br&gt;a known constant, AES-256-GCM&lt;br&gt;detects wrong shares at unseal" vertex="1">
+          <mxGeometry height="70" width="210" x="700" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="kek" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;KEK&lt;/b&gt; (256-bit vault key)&lt;br&gt;in server RAM only while unsealed" vertex="1">
+          <mxGeometry height="60" width="260" x="400" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dek" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;DEK&lt;/b&gt; (256-bit data key)&lt;br&gt;fresh for every secret version" vertex="1">
+          <mxGeometry height="60" width="260" x="120" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="val" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Secret value&lt;/b&gt;&lt;br&gt;AES-256-GCM with the DEK, fresh 96-bit nonce&lt;br&gt;AAD = path + version" vertex="1">
+          <mxGeometry height="70" width="260" x="120" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="blob" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Secret blob&lt;/b&gt; (stored in DB)&lt;br&gt;format | wrap nonce | wrapped DEK |&lt;br&gt;nonce | ciphertext + tag" vertex="1">
+          <mxGeometry height="70" width="260" x="120" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="sk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Ed25519 signing key&lt;/b&gt;&lt;br&gt;private key wrapped by the KEK (in DB)&lt;br&gt;public key stored in clear" vertex="1">
+          <mxGeometry height="70" width="260" x="680" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="aud" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;Audit entries&lt;/b&gt;&lt;br&gt;link = SHA-256(previous link + entry)&lt;br&gt;signature = Ed25519(link)" vertex="1">
+          <mxGeometry height="70" width="260" x="680" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="rotnote" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fontSize=12;fillColor=#ffffff;strokeColor=#999999;align=left;spacingLeft=8;" value="&lt;div&gt;&lt;b&gt;Rotation&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Master key: &lt;/b&gt;new master key and new shares; same KEK is re-encrypted; no change to secrets; old shares are no longer valid.&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;KEK: &lt;/b&gt;new KEK; all DEK and signing key is re-wrapped; no secret values are re-encrypted.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="240" x="960" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k1" edge="1" parent="1" source="mk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="split" value="split">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k2" edge="1" parent="1" source="split" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="shares" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k3" edge="1" parent="1" source="mk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="hkdf" value="derive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k4" edge="1" parent="1" source="hkdf" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="krk" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k5" edge="1" parent="1" source="hkdf" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="ckk" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k6" edge="1" parent="1" source="krk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="krb" value="encrypts KEK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k7" edge="1" parent="1" source="ckk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="ckb" value="encrypts constant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8" edge="1" parent="1" source="krb" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="kek" value="unseal: decrypt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k9" edge="1" parent="1" source="kek" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="dek" value="wraps (AES-256-GCM,&lt;br&gt;AAD = path + version)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k10" edge="1" parent="1" source="dek" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="val" value="encrypts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k11" edge="1" parent="1" source="val" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="blob" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k12" edge="1" parent="1" source="kek" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="sk" value="wraps">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k13" edge="1" parent="1" source="sk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" target="aud" value="signs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
