@@ -5,3 +5,5 @@ uvicorn
 click
 httpx
 pydantic
+
+httpx2
